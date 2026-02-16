@@ -12,13 +12,13 @@ System for automated security auditing and credential protection. Provides deter
 ### 1. Secret Scanning
 Scan directories for hardcoded keys, passwords, and tokens before repository operations or deployments.
 - **Tool**: `scripts/scan_secrets.py`
-- **Usage**: `python3 scripts/security-guardian/scripts/scan_secrets.py <path_to_project>`
+- **Usage**: `python3 /home/ubuntu/.openclaw/workspace/skills/security-guardian/scripts/scan_secrets.py <path_to_project>`
 - **Behavior**: If secrets are detected (exit code 1), identify the file and line, then transition credentials to `mema-vault`.
 
 ### 2. Container Vulnerability Scan
 Analyze Docker images for security vulnerabilities (CVEs) prior to production deployment.
 - **Tool**: `scripts/scan_container.sh`
-- **Usage**: `bash scripts/security-guardian/scripts/scan_container.sh <image_name>`
+- **Usage**: `bash /home/ubuntu/.openclaw/workspace/skills/security-guardian/scripts/scan_container.sh <image_name>`
 - **Logic**: Identify `HIGH` and `CRITICAL` severities. Recommend base image updates (e.g., switching to `-slim` or `-alpine`) or security patches.
 
 ### 3. Security Standards
