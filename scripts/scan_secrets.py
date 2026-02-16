@@ -13,6 +13,8 @@ PATTERNS = {
     "Private Key": r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
 }
 
+DANGEROUS_PATHS = ["/", "/etc", "/var", "/usr", "/boot", "/dev", "/root"]
+
 def scan_file(file_path):
     findings = []
     try:
@@ -20,21 +22,27 @@ def scan_file(file_path):
             for line_no, line in enumerate(f, 1):
                 for name, pattern in PATTERNS.items():
                     if re.search(pattern, line):
-                        # Mask the finding
                         findings.append({
                             "type": name,
                             "line": line_no,
                             "file": file_path
                         })
-    except Exception as e:
+    except Exception:
         pass
     return findings
 
 def main():
-    parser = argparse.ArgumentParser(description="Simple Secret Scanner")
-    parser.add_argument("path", help="Directory or file to scan")
+    parser = argparse.ArgumentParser(description="Security Guardian: Secret Scanner")
+    parser.add_argument("path", help="Target directory or file to scan")
     parser.add_argument("--exclude", nargs='*', help="Exclude patterns", default=[".git", "node_modules", "venv", "__pycache__"])
+    parser.add_argument("--force", action="store_true", help="Force scan even if path is considered dangerous")
     args = parser.parse_args()
+
+    abs_path = os.path.abspath(args.path)
+    
+    if abs_path in DANGEROUS_PATHS and not args.force:
+        print(f"CRITICAL: Scanning {abs_path} is blocked for safety. Use --force if you really mean it.")
+        sys.exit(1)
 
     all_findings = []
     if os.path.isfile(args.path):

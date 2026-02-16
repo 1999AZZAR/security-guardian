@@ -1,34 +1,36 @@
 ---
 name: security-guardian
-description: Secure your projects by scanning for hardcoded secrets, API keys, and container vulnerabilities. Use when: (1) Running a security audit on a codebase, (2) Before committing/pushing code to ensure no credentials are leaked, (3) Scanning Docker images for vulnerabilities (CVEs) using Trivy, (4) Implementing security guardrails in CI/CD or deployment workflows.
+description: Automated security auditing for OpenClaw projects. Scans for hardcoded secrets (API keys, tokens) and container vulnerabilities (CVEs) using Trivy. Provides structured reports to help maintain a clean and secure codebase.
+metadata: {"openclaw":{"requires":{"skills":["mema-vault"]}}}
 ---
 
 # Security Guardian
 
-System for automated security auditing and credential protection. Provides deterministic scanning for hardcoded secrets and container vulnerabilities.
+System for automated security auditing and credential protection.
 
 ## Core Workflows
 
 ### 1. Secret Scanning
-Scan directories for hardcoded keys, passwords, and tokens before repository operations or deployments.
+Scan specific project directories for hardcoded credentials. 
 - **Tool**: `scripts/scan_secrets.py`
 - **Usage**: `python3 $WORKSPACE/skills/security-guardian/scripts/scan_secrets.py <path_to_project>`
-- **Behavior**: If secrets are detected (exit code 1), identify the file and line, then transition credentials to `mema-vault`.
+- **Workflow**:
+    1. Execute scan on a specific project or directory.
+    2. If findings are reported (exit code 1):
+        - Review the file and line number.
+        - **Transition**: Move the secret to a secure vault (e.g., using the `mema-vault` skill).
+        - **Redact**: Replace the plaintext secret in the source code with an environment variable or a vault lookup call.
 
 ### 2. Container Vulnerability Scan
-Analyze Docker images for security vulnerabilities (CVEs) prior to production deployment.
+Analyze Docker images for vulnerabilities prior to deployment.
 - **Tool**: `scripts/scan_container.sh`
 - **Usage**: `bash $WORKSPACE/skills/security-guardian/scripts/scan_container.sh <image_name>`
-- **Logic**: Identify `HIGH` and `CRITICAL` severities. Recommend base image updates (e.g., switching to `-slim` or `-alpine`) or security patches.
+- **Logic**: Identify `HIGH` and `CRITICAL` severities. Recommend base image updates or security patches.
 
-### 3. Security Standards
-- **Credential Isolation**: Enforce zero-trust by removing plaintext secrets from source code.
-- **Attack Surface Reduction**: Favor minimal base images to reduce potential exploit vectors.
-- **Periodic Auditing**: Execute recursive scans across deployment directories to maintain a clean state.
+## Security Guardrails
+- **Scope Limitation**: Avoid scanning system-level directories. Focus only on relevant project workspaces.
+- **Credential Isolation**: Hardcoded secrets are considered a high-severity finding.
+- **Dependencies**: Container scanning requires `trivy` to be installed on the host system.
 
-## Reference
-- **Secrets to watch**: Gemini API Keys, NextDNS IDs, Resend Keys, Database Passwords, SSH Keys.
-- **Exclusion**: Always exclude `.git`, `node_modules`, and `venv` from scans to save time.
-
----
-"Brevity never excuses vulnerability." - Identity Protocol
+## Integration
+- **Vaulting**: This skill identifies leaks. Remediation should be performed using a dedicated credential manager like `mema-vault`.
